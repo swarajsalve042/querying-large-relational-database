@@ -1,0 +1,2 @@
+Project documentation and presentation created for portfolio/educational use.
+AdventureWorks2012 is a Microsoft sample database; see the official SQL Server Samples repository for its licensing and distribution terms.
