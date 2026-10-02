@@ -1,0 +1,13 @@
+# SQL Server / AdventureWorks
+*.bak
+*.mdf
+*.ndf
+*.ldf
+
+# PowerPoint temporary files
+~$*.pptx
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
