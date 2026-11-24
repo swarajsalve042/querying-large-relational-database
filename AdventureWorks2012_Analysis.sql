@@ -1,7 +1,7 @@
 /*
 AdventureWorks2012 - SQL Server Analysis Project
 Author: Swaraj Salve
-Purpose: Restore AdventureWorks2012 and answer the assignment questions.
+Purpose: Analyze the real AdventureWorks2012 sample data using its verified 2005-2008 sales date range.
 
 Database: AdventureWorks2012
 Recommended SQL Server / SSMS environment.
@@ -29,7 +29,7 @@ LEFT JOIN Person.PhoneNumberType AS pnt
 ORDER BY p.LastName, p.FirstName;
 GO
 
-/* 2. Sales orders made in May 2011 */
+/* 2. Sales orders made in July 2005 (first month in this sample database) */
 SELECT
     SalesOrderID,
     OrderDate,
@@ -39,12 +39,12 @@ SELECT
     Freight,
     TotalDue
 FROM Sales.SalesOrderHeader
-WHERE OrderDate >= '2011-05-01'
-  AND OrderDate <  '2011-06-01'
+WHERE OrderDate >= '2005-07-01'
+  AND OrderDate <  '2005-08-01'
 ORDER BY OrderDate, SalesOrderID;
 GO
 
-/* 3. Sales details/orders for May 2011 */
+/* 3. Sales details/orders for July 2005 */
 SELECT
     soh.SalesOrderID,
     soh.OrderDate,
@@ -57,27 +57,27 @@ SELECT
 FROM Sales.SalesOrderHeader AS soh
 INNER JOIN Sales.SalesOrderDetail AS sod
     ON soh.SalesOrderID = sod.SalesOrderID
-WHERE soh.OrderDate >= '2011-05-01'
-  AND soh.OrderDate <  '2011-06-01'
+WHERE soh.OrderDate >= '2005-07-01'
+  AND soh.OrderDate <  '2005-08-01'
 ORDER BY soh.OrderDate, soh.SalesOrderID, sod.SalesOrderDetailID;
 GO
 
-/* 4. Total sales made in May 2011 */
+/* 4. Total sales made in July 2005 */
 SELECT
-    SUM(TotalDue) AS TotalSales_May2011
+    SUM(TotalDue) AS TotalSales_July2005
 FROM Sales.SalesOrderHeader
-WHERE OrderDate >= '2011-05-01'
-  AND OrderDate <  '2011-06-01';
+WHERE OrderDate >= '2005-07-01'
+  AND OrderDate <  '2005-08-01';
 GO
 
-/* 5. Total sales in 2011 by month, ordered by increasing sales */
+/* 5. Total sales in 2006 by month, ordered by increasing sales */
 WITH MonthlySales AS (
     SELECT
         MONTH(OrderDate) AS SalesMonth,
         SUM(TotalDue) AS MonthlySales
     FROM Sales.SalesOrderHeader
-    WHERE OrderDate >= '2011-01-01'
-      AND OrderDate <  '2012-01-01'
+    WHERE OrderDate >= '2006-01-01'
+      AND OrderDate <  '2007-01-01'
     GROUP BY MONTH(OrderDate)
 )
 SELECT
@@ -87,14 +87,14 @@ FROM MonthlySales
 ORDER BY MonthlySales ASC;
 GO
 
-/* 6. Month-on-month sales change for 2011 */
+/* 6. Month-on-month sales change for 2006 */
 WITH MonthlySales AS (
     SELECT
         DATEFROMPARTS(YEAR(OrderDate), MONTH(OrderDate), 1) AS MonthStart,
         SUM(TotalDue) AS MonthlySales
     FROM Sales.SalesOrderHeader
-    WHERE OrderDate >= '2011-01-01'
-      AND OrderDate <  '2012-01-01'
+    WHERE OrderDate >= '2006-01-01'
+      AND OrderDate <  '2007-01-01'
     GROUP BY DATEFROMPARTS(YEAR(OrderDate), MONTH(OrderDate), 1)
 )
 SELECT
