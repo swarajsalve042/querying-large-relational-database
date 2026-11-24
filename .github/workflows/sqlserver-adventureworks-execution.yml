@@ -85,6 +85,25 @@ jobs:
             -S localhost -U sa -P "$SA_PASSWORD" -C -b -Q \
             "SELECT name, state_desc FROM sys.databases WHERE name = N'AdventureWorks2012';"
 
+      - name: Inspect AdventureWorks date coverage and May 2011 data
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker exec adventureworks-sqlserver /opt/mssql-tools18/bin/sqlcmd \
+            -S localhost -U sa -P "$SA_PASSWORD" -C -b -d master \
+            -Q "USE AdventureWorks2012;
+                SELECT COUNT(*) AS SalesOrderCount,
+                       MIN(OrderDate) AS FirstOrderDate,
+                       MAX(OrderDate) AS LastOrderDate
+                FROM Sales.SalesOrderHeader;
+                SELECT COUNT(*) AS May2011OrderCount
+                FROM Sales.SalesOrderHeader
+                WHERE OrderDate >= '2011-05-01'
+                  AND OrderDate < '2011-06-01';
+                SELECT TOP (5) SalesOrderID, OrderDate, TotalDue
+                FROM Sales.SalesOrderHeader
+                ORDER BY OrderDate, SalesOrderID;"
+
       - name: Execute all seven project queries against AdventureWorks2012
         shell: bash
         run: |
