@@ -1,0 +1,108 @@
+name: SQL Server AdventureWorks Full Execution
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'AdventureWorks2012_Analysis.sql'
+      - '.github/workflows/sqlserver-adventureworks-execution.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'AdventureWorks2012_Analysis.sql'
+      - '.github/workflows/sqlserver-adventureworks-execution.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  execute-adventureworks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Start temporary SQL Server Developer container
+        shell: bash
+        run: |
+          set -euo pipefail
+          SA_PASSWORD="TestOnly!$(openssl rand -hex 16)aA9"
+          echo "::add-mask::$SA_PASSWORD"
+          echo "SA_PASSWORD=$SA_PASSWORD" >> "$GITHUB_ENV"
+          docker pull mcr.microsoft.com/mssql/server:2022-latest
+          docker run -d --name adventureworks-sqlserver \
+            -e ACCEPT_EULA=Y \
+            -e MSSQL_PID=Developer \
+            -e MSSQL_SA_PASSWORD="$SA_PASSWORD" \
+            -p 1433:1433 \
+            mcr.microsoft.com/mssql/server:2022-latest
+          for attempt in $(seq 1 60); do
+            if docker exec adventureworks-sqlserver /opt/mssql-tools18/bin/sqlcmd \
+              -S localhost -U sa -P "$SA_PASSWORD" -C -b -Q "SELECT 1" >/dev/null 2>&1; then
+              echo "SQL Server is ready."
+              exit 0
+            fi
+            sleep 5
+          done
+          docker logs adventureworks-sqlserver
+          echo "SQL Server did not become ready in time."
+          exit 1
+
+      - name: Download official Microsoft AdventureWorks2012 backup
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --location --fail --retry 3 \
+            "https://github.com/Microsoft/sql-server-samples/releases/download/adventureworks2012/AdventureWorks2012.bak" \
+            --output "$RUNNER_TEMP/AdventureWorks2012.bak"
+          test -s "$RUNNER_TEMP/AdventureWorks2012.bak"
+          ls -lh "$RUNNER_TEMP/AdventureWorks2012.bak"
+          docker exec adventureworks-sqlserver mkdir -p /var/opt/mssql/backup
+          docker cp "$RUNNER_TEMP/AdventureWorks2012.bak" \
+            adventureworks-sqlserver:/var/opt/mssql/backup/AdventureWorks2012.bak
+          docker exec -u 0 adventureworks-sqlserver \
+            chown mssql:mssql /var/opt/mssql/backup/AdventureWorks2012.bak
+
+      - name: Restore the official AdventureWorks2012 database
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker exec adventureworks-sqlserver /opt/mssql-tools18/bin/sqlcmd \
+            -S localhost -U sa -P "$SA_PASSWORD" -C -b -V 16 -d master \
+            -Q "RESTORE DATABASE [AdventureWorks2012]
+                FROM DISK = N'/var/opt/mssql/backup/AdventureWorks2012.bak'
+                WITH
+                  MOVE N'AdventureWorks2012_Data' TO N'/var/opt/mssql/data/AdventureWorks2012_Data.mdf',
+                  MOVE N'AdventureWorks2012_Log' TO N'/var/opt/mssql/data/AdventureWorks2012_Log.ldf',
+                  REPLACE, RECOVERY, STATS = 10;"
+          docker exec adventureworks-sqlserver /opt/mssql-tools18/bin/sqlcmd \
+            -S localhost -U sa -P "$SA_PASSWORD" -C -b -Q \
+            "SELECT name, state_desc FROM sys.databases WHERE name = N'AdventureWorks2012';"
+
+      - name: Execute all seven project queries against AdventureWorks2012
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker exec adventureworks-sqlserver /opt/mssql-tools18/bin/sqlcmd \
+            -S localhost -U sa -P "$SA_PASSWORD" -C -b -V 16 \
+            -d master -i AdventureWorks2012_Analysis.sql \
+            -o "$RUNNER_TEMP/adventureworks-query-results.txt"
+          cat "$RUNNER_TEMP/adventureworks-query-results.txt"
+          test -s "$RUNNER_TEMP/adventureworks-query-results.txt"
+          echo "All seven SQL statements completed without SQL Server errors."
+
+      - name: Upload SQL execution results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: adventureworks2012-query-results
+          path: ${{ runner.temp }}/adventureworks-query-results.txt
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Stop and remove temporary SQL Server
+        if: always()
+        shell: bash
+        run: docker rm -f adventureworks-sqlserver || true
