@@ -89,10 +89,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          docker cp AdventureWorks2012_Analysis.sql \
+            adventureworks-sqlserver:/tmp/AdventureWorks2012_Analysis.sql
           docker exec adventureworks-sqlserver /opt/mssql-tools18/bin/sqlcmd \
             -S localhost -U sa -P "$SA_PASSWORD" -C -b -V 16 \
-            -d master -i AdventureWorks2012_Analysis.sql \
-            -o "$RUNNER_TEMP/adventureworks-query-results.txt"
+            -d master -i /tmp/AdventureWorks2012_Analysis.sql \
+            > "$RUNNER_TEMP/adventureworks-query-results.txt" 2>&1
           cat "$RUNNER_TEMP/adventureworks-query-results.txt"
           test -s "$RUNNER_TEMP/adventureworks-query-results.txt"
           echo "All seven SQL statements completed without SQL Server errors."
