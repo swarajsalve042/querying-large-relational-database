@@ -1,0 +1,23 @@
+name: SQL Server Script Validation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  parse-tsql:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install SQLFluff
+        run: python -m pip install --upgrade sqlfluff
+      - name: Parse AdventureWorks T-SQL
+        run: sqlfluff parse --dialect tsql AdventureWorks2012_Analysis.sql
