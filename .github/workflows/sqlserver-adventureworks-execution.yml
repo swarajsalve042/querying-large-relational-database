@@ -55,12 +55,16 @@ jobs:
         run: |
           set -euo pipefail
           curl --location --fail --retry 3 \
-            "https://github.com/Microsoft/sql-server-samples/releases/download/adventureworks2012/AdventureWorks2012.bak" \
-            --output "$RUNNER_TEMP/AdventureWorks2012.bak"
-          test -s "$RUNNER_TEMP/AdventureWorks2012.bak"
-          ls -lh "$RUNNER_TEMP/AdventureWorks2012.bak"
+            "https://github.com/Microsoft/sql-server-samples/releases/download/adventureworks2012/adventure-works-2012-oltp-full-database-backup.zip" \
+            --output "$RUNNER_TEMP/adventureworks2012-backup.zip"
+          mkdir -p "$RUNNER_TEMP/adventureworks2012-backup"
+          unzip -q "$RUNNER_TEMP/adventureworks2012-backup.zip" -d "$RUNNER_TEMP/adventureworks2012-backup"
+          BACKUP_FILE="$(find "$RUNNER_TEMP/adventureworks2012-backup" -type f -iname '*.bak' -print -quit)"
+          test -n "$BACKUP_FILE"
+          test -s "$BACKUP_FILE"
+          ls -lh "$BACKUP_FILE"
           docker exec adventureworks-sqlserver mkdir -p /var/opt/mssql/backup
-          docker cp "$RUNNER_TEMP/AdventureWorks2012.bak" \
+          docker cp "$BACKUP_FILE" \
             adventureworks-sqlserver:/var/opt/mssql/backup/AdventureWorks2012.bak
           docker exec -u 0 adventureworks-sqlserver \
             chown mssql:mssql /var/opt/mssql/backup/AdventureWorks2012.bak
