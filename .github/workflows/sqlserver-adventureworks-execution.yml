@@ -85,7 +85,7 @@ jobs:
             -S localhost -U sa -P "$SA_PASSWORD" -C -b -Q \
             "SELECT name, state_desc FROM sys.databases WHERE name = N'AdventureWorks2012';"
 
-      - name: Inspect AdventureWorks date coverage and May 2011 data
+      - name: Inspect AdventureWorks date coverage and selected analysis periods
         shell: bash
         run: |
           set -euo pipefail
@@ -96,10 +96,14 @@ jobs:
                        MIN(OrderDate) AS FirstOrderDate,
                        MAX(OrderDate) AS LastOrderDate
                 FROM Sales.SalesOrderHeader;
-                SELECT COUNT(*) AS May2011OrderCount
+                SELECT COUNT(*) AS July2005OrderCount
                 FROM Sales.SalesOrderHeader
-                WHERE OrderDate >= '2011-05-01'
-                  AND OrderDate < '2011-06-01';
+                WHERE OrderDate >= '2005-07-01'
+                  AND OrderDate < '2005-08-01';
+                SELECT YEAR(OrderDate) AS SalesYear, COUNT(*) AS OrdersInYear
+                FROM Sales.SalesOrderHeader
+                GROUP BY YEAR(OrderDate)
+                ORDER BY SalesYear;
                 SELECT TOP (5) SalesOrderID, OrderDate, TotalDue
                 FROM Sales.SalesOrderHeader
                 ORDER BY OrderDate, SalesOrderID;"
