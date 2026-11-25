@@ -30,6 +30,10 @@ GitHub Actions runs SQLFluff's T-SQL parser and a separate temporary SQL Server 
 
 Latest successful full execution: [SQL Server AdventureWorks Full Execution](https://github.com/swarajsalve042/querying-large-relational-database/actions/runs/45357844364). Download the [query result artifact](https://github.com/swarajsalve042/querying-large-relational-database/actions/runs/45357844364/artifacts/14903331970) while it is retained by GitHub.
 
+## Zomato MySQL execution validation
+
+The separate Zomato MySQL script is executed by [MySQL Zomato Analytics Execution](https://github.com/swarajsalve042/querying-large-relational-database/actions/runs/45573446076) against a temporary MySQL 8 database populated with a small, clearly fictional fixture. The workflow verifies the user-defined function, maximum-vote selection, rating bands, and `WITH ROLLUP` output. This validates SQL behavior and syntax; it does not claim analysis against a licensed or original Zomato production dataset.
+
 ## Run the project against the real database
 1. Download the official AdventureWorks2012 backup from Microsoft's SQL Server samples.
 2. Restore `AdventureWorks2012.bak` in SQL Server Management Studio.
