@@ -32,7 +32,7 @@ Latest successful full execution: [SQL Server AdventureWorks Full Execution](htt
 
 ## Zomato MySQL execution validation
 
-The separate Zomato MySQL script is executed by [MySQL Zomato Analytics Execution](https://github.com/swarajsalve042/querying-large-relational-database/actions/runs/45573446076) against a temporary MySQL 8 database populated with a small, clearly fictional fixture. The workflow verifies the user-defined function, maximum-vote selection, rating bands, and `WITH ROLLUP` output. This validates SQL behavior and syntax; it does not claim analysis against a licensed or original Zomato production dataset.
+The separate Zomato MySQL script is executed by [MySQL Zomato Analytics Execution](https://github.com/swarajsalve042/querying-large-relational-database/actions/runs/45573588501) against a temporary MySQL 8 database populated with a small, clearly fictional fixture. The workflow verifies the user-defined function, maximum-vote selection, rating bands, and `WITH ROLLUP` output. This validates SQL behavior and syntax; it does not claim analysis against a licensed or original Zomato production dataset.
 
 ## Run the project against the real database
 1. Download the official AdventureWorks2012 backup from Microsoft's SQL Server samples.
