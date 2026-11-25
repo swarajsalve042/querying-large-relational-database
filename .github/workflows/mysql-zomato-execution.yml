@@ -1,0 +1,75 @@
+name: MySQL Zomato Analytics Execution
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'zomato-sql-project/**'
+      - 'tests/zomato-smoke-fixture.sql'
+      - '.github/workflows/mysql-zomato-execution.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'zomato-sql-project/**'
+      - 'tests/zomato-smoke-fixture.sql'
+      - '.github/workflows/mysql-zomato-execution.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  execute-zomato:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: test
+          MYSQL_DATABASE: portfolio_sql
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -ptest"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install MySQL client
+        run: sudo apt-get update && sudo apt-get install -y default-mysql-client
+      - name: Create fictional Zomato test fixture
+        run: mysql -h127.0.0.1 -uroot -ptest portfolio_sql < tests/zomato-smoke-fixture.sql
+      - name: Execute all Zomato MySQL analytics statements
+        shell: bash
+        run: |
+          set -euo pipefail
+          mysql -h127.0.0.1 -uroot -ptest portfolio_sql < zomato-sql-project/zomato_analysis.sql \
+            > "$RUNNER_TEMP/zomato-mysql-results.txt"
+          cat "$RUNNER_TEMP/zomato-mysql-results.txt"
+      - name: Assert function, maximum-vote query, rating bands and rollup
+        shell: bash
+        run: |
+          set -euo pipefail
+          FUNCTION_RESULT="$(mysql -N -h127.0.0.1 -uroot -ptest portfolio_sql \
+            -e "SELECT fn_chicken_quick_bites();")"
+          test "$FUNCTION_RESULT" = "Chicken Quick Bites"
+          MAX_VOTE_ROWS="$(mysql -N -h127.0.0.1 -uroot -ptest portfolio_sql \
+            -e "SELECT COUNT(*) FROM zomato WHERE votes=(SELECT MAX(votes) FROM zomato);")"
+          test "$MAX_VOTE_ROWS" = "2"
+          RATING_BANDS="$(mysql -N -h127.0.0.1 -uroot -ptest portfolio_sql \
+            -e "SELECT CONCAT(SUM(rating>4),':',SUM(rating>3.5 AND rating<=4),':',SUM(rating>3 AND rating<=3.5),':',SUM(rating<=3)) FROM zomato;")"
+          test "$RATING_BANDS" = "1:2:1:1"
+          ROLLUP_ROWS="$(mysql -N -h127.0.0.1 -uroot -ptest portfolio_sql \
+            -e "SELECT COUNT(*) FROM (SELECT restaurant_type FROM zomato GROUP BY restaurant_type WITH ROLLUP) r;")"
+          test "$ROLLUP_ROWS" = "4"
+          echo "PASS: function, maximum votes, rating bands and ROLLUP assertions"
+      - name: Upload SQL execution output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zomato-mysql-execution-results
+          path: ${{ runner.temp }}/zomato-mysql-results.txt
+          if-no-files-found: ignore
+          retention-days: 14
