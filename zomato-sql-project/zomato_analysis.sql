@@ -50,10 +50,10 @@ SELECT
     CEIL(rating) AS rating_ceil,
     FLOOR(rating) AS rating_floor,
     ABS(rating) AS rating_abs,
-    CURDATE() AS current_date,
-    YEAR(CURDATE()) AS year,
+    CURDATE() AS current_date_value,
+    YEAR(CURDATE()) AS year_value,
     MONTHNAME(CURDATE()) AS month_name,
-    DAY(CURDATE()) AS day
+    DAY(CURDATE()) AS day_of_month
 FROM zomato;
 
 
