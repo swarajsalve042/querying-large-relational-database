@@ -1,5 +1,9 @@
 # AdventureWorks2012 SQL Server Analysis
 
+[![sql validation](https://github.com/swarajsalve042/querying-large-relational-database/actions/workflows/sql-validation.yml/badge.svg)](https://github.com/swarajsalve042/querying-large-relational-database/actions/workflows/sql-validation.yml)
+[![mysql zomato execution](https://github.com/swarajsalve042/querying-large-relational-database/actions/workflows/mysql-zomato-execution.yml/badge.svg)](https://github.com/swarajsalve042/querying-large-relational-database/actions/workflows/mysql-zomato-execution.yml)
+[![sqlserver adventureworks execution](https://github.com/swarajsalve042/querying-large-relational-database/actions/workflows/sqlserver-adventureworks-execution.yml/badge.svg)](https://github.com/swarajsalve042/querying-large-relational-database/actions/workflows/sqlserver-adventureworks-execution.yml)
+
 A portfolio project based on Microsoft's AdventureWorks2012 sample database. It demonstrates SQL Server relational queries, contact-data joins, sales filtering, aggregation, monthly analysis, and window functions.
 
 ## Project objectives
@@ -54,3 +58,12 @@ The successful run against the restored official database returned:
 - Gustavo Achong (CustomerID `29484`) total sales: `147,804.9208`.
 
 These values are the SQL Server output from the linked run artifact. The synthetic fixture is separate test scaffolding and is not used as a substitute for the official AdventureWorks dataset.
+
+
+## Latest automated verification (25 November 2026)
+
+- [SQL Server script validation — successful GitHub Actions run](https://github.com/swarajsalve042/querying-large-relational-database/actions/runs/45574978869)
+- [MySQL Zomato execution — successful GitHub Actions run](https://github.com/swarajsalve042/querying-large-relational-database/actions/runs/45573588501)
+- [AdventureWorks SQL Server execution — successful GitHub Actions run](https://github.com/swarajsalve042/querying-large-relational-database/actions/runs/45357844364)
+
+These links document automated checks only; they do not imply production deployment or manual end-user acceptance testing.
